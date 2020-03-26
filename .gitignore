@@ -1,3 +1,7 @@
+# IntelliJ project
+.idea/
+*.iml
+
 # Built application files
 *.apk
 *.aar
@@ -38,6 +42,7 @@ captures/
 
 # IntelliJ
 *.iml
+
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/gradle.xml
