@@ -3,8 +3,6 @@ package co.covid19.diagnosis
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -31,8 +29,8 @@ class MainActivity : AppCompatActivity() {
             result_view.text = it
         })
 
-        button_pick_photo.setOnClickListener {
-            GligarPicker().limit(10).disableCamera(false).cameraDirect(false)
+        fab_pick_photo.setOnClickListener {
+            GligarPicker().limit(1).disableCamera(false).cameraDirect(false)
                 .requestCode(PICKER_REQUEST_CODE)
                 .withActivity(this)
                 .show()
@@ -52,22 +50,6 @@ class MainActivity : AppCompatActivity() {
                     viewModel.setImagePath(imagesList[0])
                 }
             }
-        }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
         }
     }
 

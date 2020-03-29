@@ -58,19 +58,14 @@ dependencies {
 
     // Image picker
     implementation 'com.opensooq.supernova:gligar:1.0.0'
-//    implementation 'gun0912.ted:tedimagepicker:1.0.8'
-//    implementation 'gun0912.ted:tedpermission:2.2.2'
 
-//    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.3'
-//    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
-//    implementation 'com.android.support:multidex:1.0.3'
-
-     // Pytorch
+    // Pytorch
     implementation 'org.pytorch:pytorch_android:1.4.0'
     implementation 'org.pytorch:pytorch_android_torchvision:1.4.0'
 
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
 
     testImplementation 'junit:junit:4.13'

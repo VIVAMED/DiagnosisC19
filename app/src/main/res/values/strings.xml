@@ -10,4 +10,8 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="pick_photo">Pick Photo</string>
+
+    <string name="title_activity_splash">SplashActivity</string>
+     <string name="result_message">IA apoyo a decisiones médicas Rx \n %s</string>
+    <string name="title_message">Sistema de apoyo a decisiones médicas para detección de Covid-19</string>
 </resources>

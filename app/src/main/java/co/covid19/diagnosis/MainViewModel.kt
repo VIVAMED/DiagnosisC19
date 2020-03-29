@@ -3,9 +3,11 @@ package co.covid19.diagnosis
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -19,7 +21,7 @@ import java.io.IOException
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
-    private var context: Context = application as Context
+    private var context: Context = application
     private var module: Module
 
     private var imageUri: Uri? = null
@@ -57,15 +59,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun runModelExec(): String? {
         return withContext(Dispatchers.IO) {
-            val result= runModel()
+            val result = runModel()
             result
         }
     }
 
     private fun runModel(): String {
         // preparing input tensor
+        val mutableBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            bitmap.value!!.copy(Bitmap.Config.RGBA_F16, true)
+        } else {
+            bitmap.value!!
+        }
+
         val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
-            _bitmap.value,
+            mutableBitmap,
             TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
             TensorImageUtils.TORCHVISION_NORM_STD_RGB
         )
@@ -88,24 +96,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-//        val className: String = ImageNetClasses.IMAGENET_CLASSES[maxScoreIdx]
         return ImageNetClasses.IMAGENET_CLASSES[maxScoreIdx]
-
-        // showing className on UI
-//        result_view.text = className
     }
 
-    private fun createBitmap(): Bitmap? {
-        var bitmap: Bitmap? = null
-        try {
-            bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+//    private fun createBitmap(): Bitmap? {
+//        var bitmap: Bitmap? = null
+//        try {
+////            bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+//            bitmap = when {
+//                Build.VERSION.SDK_INT < 28 -> {
+//                    MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+//                }
+//                else -> {
+//                    val source = ImageDecoder.createSource(context.contentResolver, imageUri!!)
+//                    ImageDecoder.decodeBitmap(source)
+//                }
+//            }
+//
+//        } catch (e: IOException) {
+//            Log.e(TAG, "Error creating bitmap", e)
+//        }
+//        return bitmap
+//    }
 
-        } catch (e: IOException) {
-            Log.e(TAG, "Error creating bitmap", e)
+    private fun createBitmap(): Bitmap {
+        return when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P -> {
+                val source = ImageDecoder.createSource(context.contentResolver, imageUri!!)
+                ImageDecoder.decodeBitmap(source)
+            }
+            else -> {
+                MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+            }
         }
-        return bitmap
     }
-
 
     /**
      * Copies specified asset to the file in /files app directory and returns this file absolute path.
@@ -113,15 +137,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @return absolute file path
      */
     @Throws(IOException::class)
-    fun assetFilePath(
-        context: Context,
-        assetName: String?
-    ): String? {
+    fun assetFilePath(context: Context, assetName: String): String? {
         val file = File(context.filesDir, assetName)
         if (file.exists() && file.length() > 0) {
             return file.absolutePath
         }
-        context.assets.open(assetName!!).use { `is` ->
+        context.assets.open(assetName).use { `is` ->
             FileOutputStream(file).use { os ->
                 val buffer = ByteArray(4 * 1024)
                 var read: Int
@@ -134,20 +155,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
     override fun onCleared() {
         super.onCleared()
         viewModelJob.cancel()
     }
 
-    companion object{
+    companion object {
         private const val TAG = "MainActivity"
     }
 
     object ImageNetClasses {
         var IMAGENET_CLASSES = arrayOf(
-            "Covid (Unhealthy)",
-            "Normal (Healthy)"
+            "No sano(Covid 19)",
+            "Sano"
         )
     }
 }
