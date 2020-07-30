@@ -10,6 +10,7 @@ import org.pytorch.torchvision.TensorImageUtils;
 
 import co.covid19.model.Classifier;
 import co.covid19.model.DiagnosisEnum;
+import co.covid19.model.exceptions.ImageNotConvertedException;
 
 public abstract class PytorchClassifier implements Classifier
 {
@@ -28,12 +29,20 @@ public abstract class PytorchClassifier implements Classifier
     }
 
     @Override
-    public Tensor imageToTensor(Bitmap b) {
-        return TensorImageUtils.bitmapToFloat32Tensor(
-            b,
-            TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
-            TensorImageUtils.TORCHVISION_NORM_STD_RGB
-        );
+    public Tensor imageToTensor(Bitmap b) throws ImageNotConvertedException {
+        try {
+            return TensorImageUtils.bitmapToFloat32Tensor(
+                    b,
+                    TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
+                    TensorImageUtils.TORCHVISION_NORM_STD_RGB
+            );
+        } catch (Exception e) {
+            throw new ImageNotConvertedException(
+                    "Image was not converted successfully: " + e.getMessage(),
+                    e.getCause()
+            );
+        }
+
     }
 
     @Override
