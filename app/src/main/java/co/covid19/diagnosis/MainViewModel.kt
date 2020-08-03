@@ -39,7 +39,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         module = Module.load(
             assetFilePath(
                 context,
-                "CheX-SnS_clahe_soft_best7.pth"
+                "CheX-SnS_clahe_soft_best_7_87.7.pth.tar"
+                //"CheX-SnS_clahe_soft_best_7_87.7.pt"
             )
         )
     }
