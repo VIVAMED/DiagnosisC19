@@ -39,7 +39,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         module = Module.load(
             assetFilePath(
                 context,
-                "chk_resnet_50_epoch_14.pt"
+                "CheX-SnS_clahe_soft_best7.pth"
             )
         )
     }
@@ -71,6 +71,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             bitmap.value!!
         }
+
 
         val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
             mutableBitmap,
