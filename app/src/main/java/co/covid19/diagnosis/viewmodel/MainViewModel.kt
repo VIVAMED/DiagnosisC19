@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -42,18 +41,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var bitmapLiveData: LiveData<Bitmap> = bitmap
 
     init {
-        val file = assetFilePath(context, MODEL_NAME_1)
-        file?.let {
-            module = Module.load(it)
+        loadModel(MODEL_NAME_1)
+    }
+
+    private fun loadModel(fileName: String) {
+        uiScope.launch {
+            val file = loadFile(fileName)
+            module = Module.load(file)
+        }
+    }
+
+    private suspend fun loadFile(fileName: String): String? {
+        return withContext(Dispatchers.IO) {
+            val file = assetFilePath(context, fileName)
+            file
         }
     }
 
     fun setImagePath(path: String) {
-        result.value = "Procesando .."
         imagePath = path
     }
 
     fun runModel() {
+        result.value = "Procesando .."
         uiScope.launch {
             bitmap.value = createBitmap()
             result.value = runModelExec()
