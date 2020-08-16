@@ -40,6 +40,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var bitmap = MutableLiveData<Bitmap>()
     var bitmapLiveData: LiveData<Bitmap> = bitmap
 
+    private var isProcessing = MutableLiveData<Boolean>()
+    var isProcessingLiveData: LiveData<Boolean> = isProcessing
+
     init {
         loadModel(MODEL_NAME_1)
     }
@@ -64,29 +67,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun runModel() {
         result.value = "Procesando .."
+        isProcessing.value = true
         uiScope.launch {
-            bitmap.value = createBitmap()
-            result.value = runModelExec()
+            val image = createBitmap()
+            result.value = runModelExec(image)
+            isProcessing.value = false
+            bitmap.value = image
         }
     }
 
-    private suspend fun runModelExec(): String? {
+    private suspend fun runModelExec(bitmap: Bitmap): String? {
         return withContext(Dispatchers.IO) {
-            val result = executeModel()
+            val result = executeModel(bitmap)
             result
         }
     }
 
-    private fun executeModel(): String {
-        // creating bitmap from packaged into app android asset 'covid_original.jpg',
-//        var bitmap = BitmapFactory.decodeStream(context.assets.open("covid_original.jpg"))
-//        _bitmap.value = BitmapFactory.decodeFile(imageUri?.path)
-
+    private fun executeModel(bitmap: Bitmap): String {
         // Scale Image
-        val bitmapInput = Bitmap.createScaledBitmap(bitmap.value!!, 224, 224, false)
+//        val bitmapInput = Bitmap.createScaledBitmap(bitmap.value!!, 224, 224, false)
 
         val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
-            bitmap.value!!,
+            bitmap,
             TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
             TensorImageUtils.TORCHVISION_NORM_STD_RGB
         )
@@ -110,6 +112,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return IMAGENET_CLASSES[maxScoreIdx]
     }
 
+    // creating bitmap from packaged into app android asset 'covid_original.jpg',
     private suspend fun createBitmap(): Bitmap {
         return withContext(Dispatchers.IO) {
             val bitmap = BitmapFactory.decodeFile(imagePath)

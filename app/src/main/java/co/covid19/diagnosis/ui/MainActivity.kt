@@ -3,12 +3,13 @@ package co.covid19.diagnosis.ui
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import co.covid19.diagnosis.R
 import co.covid19.diagnosis.viewmodel.MainViewModel
 import co.covid19.diagnosis.viewmodel.MainViewModelFactory
-import co.covid19.diagnosis.R
 import com.opensooq.supernova.gligar.GligarPicker
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -30,14 +31,26 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this, viewModelFactory).get(MainViewModel::class.java)
 
         viewModel.bitmapLiveData.observe(this, Observer {
-            image_view.setImageBitmap(it)
+            imageView.setImageBitmap(it)
         })
 
         viewModel.resultLiveData.observe(this, Observer {
-            result_view.text = it
+            resultView.text = it
         })
 
-        fab_pick_photo.setOnClickListener {
+        viewModel.isProcessingLiveData.observe(this, Observer {
+            if(it == true){
+                pickPhotoButton.isEnabled = false
+                progressBar.visibility = View.VISIBLE
+
+            } else {
+                pickPhotoButton.isEnabled = true
+                progressBar.visibility = View.GONE
+            }
+        })
+
+        pickPhotoButton.setOnClickListener {
+            imageView.setImageResource(android.R.color.transparent);
             GligarPicker().limit(1).disableCamera(false).cameraDirect(false)
                 .requestCode(PICKER_REQUEST_CODE)
                 .withActivity(this)
