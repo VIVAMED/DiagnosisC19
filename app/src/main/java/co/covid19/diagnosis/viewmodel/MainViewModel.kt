@@ -3,17 +3,15 @@ package co.covid19.diagnosis.viewmodel
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
+import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import co.covid19.diagnosis.util.Constants.IMAGENET_CLASSES
-import co.covid19.diagnosis.util.Constants.MODEL_NAME
+import co.covid19.diagnosis.util.Constants.MODEL_NAME_1
 import kotlinx.coroutines.*
 import org.pytorch.IValue
 import org.pytorch.Module
@@ -32,54 +30,53 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var context: Context = application
     private lateinit var module: Module
 
-    private var imageUri: Uri? = null
+    private lateinit var imagePath: String
 
     private var viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
-    private var _result = MutableLiveData<String>()
-    var result: LiveData<String> = _result
+    private var result = MutableLiveData<String>()
+    var resultLiveData: LiveData<String> = result
 
-    private var _bitmap = MutableLiveData<Bitmap>()
-    var bitmap: LiveData<Bitmap> = _bitmap
+    private var bitmap = MutableLiveData<Bitmap>()
+    var bitmapLiveData: LiveData<Bitmap> = bitmap
 
     init {
-        val file = assetFilePath(context, MODEL_NAME)
+        val file = assetFilePath(context, MODEL_NAME_1)
         file?.let {
             module = Module.load(it)
         }
     }
 
     fun setImagePath(path: String) {
-        _result.value = "Procesando .."
-        imageUri = Uri.fromFile(File(path))
-        _bitmap.value = createBitmap()
-        getResult()
+        result.value = "Procesando .."
+        imagePath = path
     }
 
-    private fun getResult() {
+    fun runModel() {
         uiScope.launch {
-            _result.value = runModelExec()
+            bitmap.value = createBitmap()
+            result.value = runModelExec()
         }
     }
 
     private suspend fun runModelExec(): String? {
         return withContext(Dispatchers.IO) {
-            val result = runModel()
+            val result = executeModel()
             result
         }
     }
 
-    private fun runModel(): String {
-        // preparing input tensor
-        val mutableBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            bitmap.value!!.copy(Bitmap.Config.RGBA_F16, true)
-        } else {
-            bitmap.value!!
-        }
+    private fun executeModel(): String {
+        // creating bitmap from packaged into app android asset 'covid_original.jpg',
+//        var bitmap = BitmapFactory.decodeStream(context.assets.open("covid_original.jpg"))
+//        _bitmap.value = BitmapFactory.decodeFile(imageUri?.path)
+
+        // Scale Image
+        val bitmapInput = Bitmap.createScaledBitmap(bitmap.value!!, 224, 224, false)
 
         val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
-            mutableBitmap,
+            bitmap.value!!,
             TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
             TensorImageUtils.TORCHVISION_NORM_STD_RGB
         )
@@ -103,15 +100,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return IMAGENET_CLASSES[maxScoreIdx]
     }
 
-    private fun createBitmap(): Bitmap {
-        return when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P -> {
-                val source = ImageDecoder.createSource(context.contentResolver, imageUri!!)
-                ImageDecoder.decodeBitmap(source)
-            }
-            else -> {
-                MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
-            }
+    private suspend fun createBitmap(): Bitmap {
+        return withContext(Dispatchers.IO) {
+            val bitmap = BitmapFactory.decodeFile(imagePath)
+            bitmap
         }
     }
 

@@ -4,8 +4,8 @@
     android:opacity="opaque">
     <item android:drawable="@color/background" />
     <item
-        android:width="250dp"
-        android:height="150dp"
-        android:drawable="@drawable/logo_eafit"
+        android:width="316dp"
+        android:height="236dp"
+        android:drawable="@drawable/vivamed_logo"
         android:gravity="center" />
 </layer-list>

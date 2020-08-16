@@ -10,7 +10,7 @@
     <item>
 
         <bitmap
-            android:src="@drawable/logo_eafit"
+            android:src="@drawable/vivamed_logo"
             android:width="250dp"
             android:height="150dp"
             android:gravity="center"/>

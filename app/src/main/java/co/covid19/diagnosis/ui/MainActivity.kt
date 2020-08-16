@@ -29,11 +29,11 @@ class MainActivity : AppCompatActivity() {
             MainViewModelFactory(this.application)
         viewModel = ViewModelProvider(this, viewModelFactory).get(MainViewModel::class.java)
 
-        viewModel.bitmap.observe(this, Observer {
+        viewModel.bitmapLiveData.observe(this, Observer {
             image_view.setImageBitmap(it)
         })
 
-        viewModel.result.observe(this, Observer {
+        viewModel.resultLiveData.observe(this, Observer {
             result_view.text = it
         })
 
@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
                 val imagesList = data?.extras?.getStringArray(GligarPicker.IMAGES_RESULT)
                 if (!imagesList.isNullOrEmpty()) {
                     viewModel.setImagePath(imagesList[0])
+                    viewModel.runModel()
                 }
             }
         }
