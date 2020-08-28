@@ -85,10 +85,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun executeModel(bitmap: Bitmap): String {
         // Scale Image
-//        val bitmapInput = Bitmap.createScaledBitmap(bitmap.value!!, 224, 224, false)
+        val bitmapInput = Bitmap.createScaledBitmap(bitmap, 224, 224, false)
 
         val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
-            bitmap,
+            bitmapInput,
             TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
             TensorImageUtils.TORCHVISION_NORM_STD_RGB
         )
