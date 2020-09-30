@@ -34,6 +34,10 @@ class MainActivity : AppCompatActivity() {
             imageView.setImageBitmap(it)
         })
 
+        viewModel.imageNameLiveData.observe(this, Observer {
+            imageNameView.text = it
+        })
+
         viewModel.resultLiveData.observe(this, Observer {
             resultView.text = it
         })

@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -38,7 +39,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var resultLiveData: LiveData<String> = result
 
     private var bitmap = MutableLiveData<Bitmap>()
+    private var imageName = MutableLiveData<String>()
     var bitmapLiveData: LiveData<Bitmap> = bitmap
+    var imageNameLiveData: LiveData<String> = imageName
 
     private var isProcessing = MutableLiveData<Boolean>()
     var isProcessingLiveData: LiveData<Boolean> = isProcessing
@@ -73,7 +76,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             result.value = runModelExec(image)
             isProcessing.value = false
             bitmap.value = image
+            imageName.value = getImageName()
         }
+    }
+
+    private fun getImageName(): String {
+        val uri = Uri.parse(imagePath);
+        return uri.lastPathSegment.toString()
     }
 
     private suspend fun runModelExec(bitmap: Bitmap): String? {
