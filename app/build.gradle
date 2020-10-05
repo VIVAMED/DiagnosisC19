@@ -53,8 +53,9 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.0'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.0'
 
-    // Image picker
-    implementation 'com.opensooq.supernova:gligar:1.0.0'
+    // Image picke/r
+   // implementation 'com.opensooq.supernova:gligar:1.0.0'
+    implementation project(':gligar')
 
     // Pytorch
     implementation 'org.pytorch:pytorch_android:1.4.0'

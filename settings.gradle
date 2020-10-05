@@ -1,2 +1,2 @@
 rootProject.name='DiagnosisC19'
-include ':app'
+include ':app', ':gligar'

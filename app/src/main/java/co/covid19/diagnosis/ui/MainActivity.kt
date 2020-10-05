@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.isProcessingLiveData.observe(this, Observer {
-            if(it == true){
+            if (it == true) {
                 pickPhotoButton.isEnabled = false
                 progressBar.visibility = View.VISIBLE
 
@@ -55,7 +55,11 @@ class MainActivity : AppCompatActivity() {
 
         pickPhotoButton.setOnClickListener {
             imageView.setImageResource(android.R.color.transparent);
-            GligarPicker().limit(1).disableCamera(false).cameraDirect(false)
+            GligarPicker()
+                .limit(1)
+                .disableCamera(false)
+                .cameraDirect(false)
+                .folderPosition(viewModel.currentSelectedAlbum)
                 .requestCode(PICKER_REQUEST_CODE)
                 .withActivity(this)
                 .show()
@@ -71,6 +75,9 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             PICKER_REQUEST_CODE -> {
                 val imagesList = data?.extras?.getStringArray(GligarPicker.IMAGES_RESULT)
+                viewModel.currentSelectedAlbum =
+                    data?.extras?.getInt(GligarPicker.CURRENT_ALBUM_POSITION_RESULT, 0) ?: 0
+
                 if (!imagesList.isNullOrEmpty()) {
                     viewModel.setImagePath(imagesList[0])
                     viewModel.runModel()
