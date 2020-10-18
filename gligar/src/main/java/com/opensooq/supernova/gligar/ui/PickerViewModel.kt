@@ -40,6 +40,8 @@ internal class PickerViewModel(private val savedStateHandle: SavedStateHandle) :
     internal var dumpImagesList = getDumItems()
     internal var mCurrentPhotoPath: String? = null
     internal var mCurrentSelectedAlbum = 0
+    internal var mCurrentSelectedItem = 0
+    internal var mInitSelectedItem = 0
     internal var mPage = 0
 
     private var mSelectedAlbum: AlbumItem? = null
@@ -50,6 +52,7 @@ internal class PickerViewModel(private val savedStateHandle: SavedStateHandle) :
 
     private lateinit var mImageDataSource: ImagesDataSource
     private lateinit var contentResolver: ContentResolver
+
     private fun getCurrentSelection() = mCurrentSelection
 
     internal fun isOverLimit() = mCurrentSelection >= mLimit
@@ -60,6 +63,7 @@ internal class PickerViewModel(private val savedStateHandle: SavedStateHandle) :
         }
         mLimit = extras.getInt(EXTRA_LIMIT, 0)
         mCurrentSelectedAlbum = extras.getInt(ImagePickerActivity.EXTRA_FOLDER_POSITION, 0)
+        mInitSelectedItem = extras.getInt(ImagePickerActivity.EXTRA_ITEM_POSITION, 0)
         mCameraCisabled = extras.getBoolean(ImagePickerActivity.EXTRA_DISABLE_CAMERA, false)
         mDirectCamera.value = extras.getBoolean(ImagePickerActivity.EXTRA_CAMERA_DIRECT, false)
     }
@@ -77,7 +81,6 @@ internal class PickerViewModel(private val savedStateHandle: SavedStateHandle) :
 
     internal fun loadMoreImages() {
         loadImages(true)
-
     }
 
     private fun loadImages(isLoadMore: Boolean = false) {
@@ -145,6 +148,7 @@ internal class PickerViewModel(private val savedStateHandle: SavedStateHandle) :
         }
         mNotifyPosition.value = position
         mDoneEnabled.value = getCurrentSelection() > 0
+        mCurrentSelectedItem = position
     }
 
     private fun getCurrentSelectionCountForCamera(): Int {
@@ -173,6 +177,7 @@ internal class PickerViewModel(private val savedStateHandle: SavedStateHandle) :
         mCurrentSelection = 0
         mCurrentSelectedAlbum = pos
         loadImages()
+        mCurrentSelectedItem = 0
     }
 
     internal fun saveState() {
@@ -180,6 +185,7 @@ internal class PickerViewModel(private val savedStateHandle: SavedStateHandle) :
         savedStateHandle.set(ALBUMS, mAlbums.value)
         savedStateHandle.set(PHOTO_PATH, mCurrentPhotoPath)
         savedStateHandle.set(ALBUM_POS, mCurrentSelectedAlbum)
+        savedStateHandle.set(ITEM_POS, mCurrentSelectedItem)
         savedStateHandle.set(PAGE, mPage)
         savedStateHandle.set(SELECTED_ALBUM, mSelectedAlbum)
         savedStateHandle.set(SELECTED_IMAGES, mSelectedList)
@@ -193,6 +199,7 @@ internal class PickerViewModel(private val savedStateHandle: SavedStateHandle) :
         mAlbums.value = savedStateHandle.get(ALBUMS) ?: arrayListOf()
         mCurrentPhotoPath = savedStateHandle.get(PHOTO_PATH)
         mCurrentSelectedAlbum = savedStateHandle.get(ALBUM_POS) ?: 0
+        mCurrentSelectedItem = savedStateHandle.get(ITEM_POS) ?: 3
         mPage = savedStateHandle.get(PAGE) ?: 0
         mSelectedAlbum = savedStateHandle.get(SELECTED_ALBUM)
         mSelectedList = savedStateHandle.get(SELECTED_IMAGES) ?: hashMapOf()

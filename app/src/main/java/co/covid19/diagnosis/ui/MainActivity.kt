@@ -54,12 +54,14 @@ class MainActivity : AppCompatActivity() {
         })
 
         pickPhotoButton.setOnClickListener {
-            imageView.setImageResource(android.R.color.transparent);
+            imageView.setImageResource(android.R.color.transparent)
+            imageNameView.text = ""
             GligarPicker()
                 .limit(1)
                 .disableCamera(false)
                 .cameraDirect(false)
                 .folderPosition(viewModel.currentSelectedAlbum)
+                .itemPosition(viewModel.currentSelectedItem)
                 .requestCode(PICKER_REQUEST_CODE)
                 .withActivity(this)
                 .show()
@@ -77,6 +79,9 @@ class MainActivity : AppCompatActivity() {
                 val imagesList = data?.extras?.getStringArray(GligarPicker.IMAGES_RESULT)
                 viewModel.currentSelectedAlbum =
                     data?.extras?.getInt(GligarPicker.CURRENT_ALBUM_POSITION_RESULT, 0) ?: 0
+
+                viewModel.currentSelectedItem =
+                    data?.extras?.getInt(GligarPicker.CURRENT_ITEM_POSITION_RESULT, 0) ?: 0
 
                 if (!imagesList.isNullOrEmpty()) {
                     viewModel.setImagePath(imagesList[0])

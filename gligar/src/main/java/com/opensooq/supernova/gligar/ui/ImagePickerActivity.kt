@@ -30,6 +30,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.opensooq.OpenSooq.ui.imagePicker.model.AlbumItem
 import com.opensooq.OpenSooq.ui.imagePicker.model.ImageItem
 import com.opensooq.supernova.gligar.GligarPicker.Companion.CURRENT_ALBUM_POSITION_RESULT
+import com.opensooq.supernova.gligar.GligarPicker.Companion.CURRENT_ITEM_POSITION_RESULT
 import com.opensooq.supernova.gligar.GligarPicker.Companion.IMAGES_RESULT
 import com.opensooq.supernova.gligar.R
 import com.opensooq.supernova.gligar.adapters.AlbumsAdapter
@@ -56,6 +57,7 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
     companion object {
         const val EXTRA_LIMIT = "limit"
         const val EXTRA_FOLDER_POSITION = "folder_position"
+        const val EXTRA_ITEM_POSITION = "item_position"
         const val EXTRA_CAMERA_DIRECT = "camera_direct"
         const val EXTRA_DISABLE_CAMERA = "disable_camera"
         const val STORAGE_PERMISSION_REQUEST_CODE = 100
@@ -110,17 +112,16 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
         changeAlbum = findViewById(R.id._change_album)
         rootView = findViewById(R.id._v_rootView)
 
-
         mainViewModel = ViewModelProvider(this, SavedStateViewModelFactory(application, this)).get(
             PickerViewModel::class.java
         )
         mainViewModel.init(contentResolver)
+
         if (savedInstanceState != null) {
             isSaveState = true
             mainViewModel.loadSaveState()
         } else {
             mainViewModel.bindArguments(intent.extras)
-
         }
         setImagesAdapter()
         icDone.setOnClickListener { sendResults() }
@@ -234,6 +235,7 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
                 l: Long
             ) {
                 updateAlbumUI(pos)
+                mainViewModel.mInitSelectedItem = 0
             }
         }
         changeAlbum.setOnClickListener { albumsSpinner.performClick() }
@@ -250,12 +252,36 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
         val mLayoutManager = GridLayoutManager(this, 2)
         rvImages.layoutManager = mLayoutManager
         rvImages.setHasFixedSize(true)
+
         mImagesAdapter?.images = arrayListOf()
         mImagesAdapter?.images?.addAll(if (isSaveState && !mainViewModel.saveStateImages.isNullOrEmpty()) mainViewModel.saveStateImages else mainViewModel.dumpImagesList)
         mainViewModel.saveStateImages.clear()
         rvImages.adapter = mImagesAdapter
+
+        rvImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                trackPosition()
+            }
+        })
+
         observe()
         setLoadMoreListener()
+    }
+
+    private fun scrollToPosition(pos: Int) {
+        rvImages.scrollToPosition(pos)
+    }
+
+    private fun trackPosition() {
+        val layoutManager = rvImages.layoutManager as? GridLayoutManager
+        layoutManager?.let {
+            val firstVisiblePosition = it.findFirstVisibleItemPosition()
+            val lastVisiblePosition = it.findLastVisibleItemPosition()
+
+            if (firstVisiblePosition != RecyclerView.NO_POSITION && lastVisiblePosition != RecyclerView.NO_POSITION) {
+                mainViewModel.mCurrentSelectedItem = firstVisiblePosition
+            }
+        }
     }
 
     override fun onItemClicked(position: Int) {
@@ -268,7 +294,6 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
     }
 
     private fun observe() {
-
         mainViewModel.mDirectCamera.observe(this, Observer {
             forceCamera = it
         })
@@ -277,6 +302,7 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
         })
         mainViewModel.mLastAddedImages.observe(this, Observer {
             addImages(it)
+            scrollToPosition(mainViewModel.mInitSelectedItem)
         })
         mainViewModel.mNotifyPosition.observe(this, Observer {
             mImagesAdapter?.notifyItemChanged(it)
@@ -287,7 +313,7 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
         })
 
         mainViewModel.mDoneEnabled.observe(this, Observer {
-            setDoneVisibilty(it)
+            setDoneVisibility(it)
         })
 
         mainViewModel.showOverLimit.observe(this, Observer {
@@ -308,7 +334,7 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
             loadMoreListener?.setFinished()
         }
 
-        var lastPos = mImagesAdapter?.images?.size ?: 0
+        val lastPos = mImagesAdapter?.images?.size ?: 0
         if (isFirstPage) {
             mImagesAdapter?.images = it
             mImagesAdapter?.notifyDataSetChanged()
@@ -323,7 +349,7 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
         }
     }
 
-    private fun setDoneVisibilty(visible: Boolean) {
+    private fun setDoneVisibility(visible: Boolean) {
         icDone.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
@@ -349,7 +375,7 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
             when (requestCode) {
                 REQUEST_CODE_CAMERA_IMAGE -> {
                     mainViewModel.addCameraItem(mImagesAdapter?.images)
-                    setDoneVisibilty(true)
+                    setDoneVisibility(true)
                 }
             }
         }
@@ -386,6 +412,7 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
         val intent = Intent()
         intent.putExtra(IMAGES_RESULT, images)
         intent.putExtra(CURRENT_ALBUM_POSITION_RESULT, mainViewModel.mCurrentSelectedAlbum)
+        intent.putExtra(CURRENT_ITEM_POSITION_RESULT, mainViewModel.mCurrentSelectedItem)
         setResult(Activity.RESULT_OK, intent)
         finish()
     }
@@ -393,7 +420,6 @@ internal class ImagePickerActivity : AppCompatActivity(), LoadMoreListener.OnLoa
     private fun showLimitMsg() {
         Snackbar.make(rootView, R.string.over_limit_msg, Snackbar.LENGTH_LONG).show()
     }
-
 
     private fun showAppPage() {
         val intent = Intent(

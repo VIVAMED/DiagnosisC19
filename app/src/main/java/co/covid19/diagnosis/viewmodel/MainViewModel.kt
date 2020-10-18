@@ -47,6 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var isProcessingLiveData: LiveData<Boolean> = isProcessing
 
     var currentSelectedAlbum = 0
+    var currentSelectedItem = 0
 
     init {
         loadModel(MODEL_NAME_1)
